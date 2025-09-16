@@ -417,13 +417,13 @@
             <!-- Wallet Save Options -->
             <div class="wallet-actions">
                 <button id="addToWalletBtn" class="wallet-btn">
-                    📱 Add to Apple Wallet
-                </button>
-                <button id="addToGoogleWalletBtn" class="wallet-btn google">
-                    📱 Add to Google Wallet
+                    📱 Save to Photos
                 </button>
                 <button id="downloadQRBtn" class="wallet-btn">
                     💾 Download QR Code
+                </button>
+                <button id="screenshotBtn" class="wallet-btn google">
+                    📸 Screenshot Instructions
                 </button>
             </div>
 
@@ -500,59 +500,11 @@
             return containerElement;
         }
 
-        // Apple Wallet Pass generation
+        // Apple Wallet Pass generation (simplified)
         function generateAppleWalletPass(userData) {
-            // This creates a simple pass for Apple Wallet
-            const passData = {
-                formatVersion: 1,
-                passTypeIdentifier: "pass.com.cerealnoMilk.funhouse",
-                serialNumber: userData.uniqueId,
-                teamIdentifier: "FUNHOUSE",
-                organizationName: "Cereal No Milk Funhouse",
-                description: "Funhouse Entry Pass",
-                logoText: "🎪 FUNHOUSE",
-                foregroundColor: "rgb(255, 255, 255)",
-                backgroundColor: "rgb(102, 126, 234)",
-                labelColor: "rgb(255, 255, 255)",
-                generic: {
-                    primaryFields: [{
-                        key: "name",
-                        label: "NAME",
-                        value: userData.fullName
-                    }],
-                    secondaryFields: [{
-                        key: "event",
-                        label: "EVENT",
-                        value: CONFIG.EVENT_NAME
-                    }],
-                    auxiliaryFields: [{
-                        key: "id",
-                        label: "ID",
-                        value: userData.uniqueId
-                    }],
-                    backFields: [{
-                        key: "qr",
-                        label: "QR Code Data",
-                        value: userData.uniqueId
-                    }]
-                },
-                barcode: {
-                    message: userData.uniqueId,
-                    format: "PKBarcodeFormatQR",
-                    messageEncoding: "iso-8859-1"
-                }
-            };
-
-            // Create download link
-            const blob = new Blob([JSON.stringify(passData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `funhouse-pass-${userData.uniqueId}.pkpass`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            // Apple Wallet passes need to be signed and created server-side
+            // For now, we'll just save the QR code to photos instead
+            alert('Apple Wallet passes require server setup. Try "Download QR Code" instead to save to your photos!');
         }
 
         // Save to Supabase
@@ -657,73 +609,70 @@
         }
 
         function setupWalletButtons(userData) {
-            // Add to Apple Wallet
+            // Save to Photos (simplified)
             document.getElementById('addToWalletBtn').addEventListener('click', function() {
-                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                    generateAppleWalletPass(userData);
-                } else {
-                    alert('Apple Wallet is only available on iOS devices. Try downloading the QR code instead!');
-                }
-            });
-
-            // Add to Google Wallet
-            document.getElementById('addToGoogleWalletBtn').addEventListener('click', function() {
-                const googleWalletUrl = `https://pay.google.com/gp/v/save/eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({
-                    "iss": "your-service-account@your-project.iam.gserviceaccount.com",
-                    "aud": "google",
-                    "typ": "savetowallet",
-                    "payload": {
-                        "genericObjects": [{
-                            "id": userData.uniqueId,
-                            "classId": "3388000000022045361.generic_class",
-                            "genericType": "GENERIC_TYPE_UNSPECIFIED",
-                            "hexBackgroundColor": "#4285f4",
-                            "logo": {
-                                "sourceUri": {
-                                    "uri": "https://example.com/logo.png"
-                                }
-                            },
-                            "cardTitle": {
-                                "defaultValue": {
-                                    "language": "en",
-                                    "value": "🎪 Funhouse Pass"
-                                }
-                            },
-                            "subheader": {
-                                "defaultValue": {
-                                    "language": "en",
-                                    "value": userData.fullName
-                                }
-                            },
-                            "header": {
-                                "defaultValue": {
-                                    "language": "en",
-                                    "value": CONFIG.EVENT_NAME
-                                }
-                            },
-                            "barcode": {
-                                "type": "QR_CODE",
-                                "value": userData.uniqueId
-                            }
-                        }]
-                    }
-                })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`;
+                // Scroll to QR code and highlight it
+                const qrContainer = document.getElementById('qrCodeContainer');
+                qrContainer.scrollIntoView({ behavior: 'smooth' });
+                qrContainer.style.border = '5px solid #ff6b6b';
+                qrContainer.style.animation = 'pulse 1s infinite';
                 
-                window.open(googleWalletUrl, '_blank');
+                alert('📱 To save to your photos:\n\n1. Take a screenshot of this page\n2. Crop around the QR code\n3. Save to your Photos app\n\nThen show the QR code for check-in!');
+                
+                setTimeout(() => {
+                    qrContainer.style.border = '';
+                    qrContainer.style.animation = '';
+                }, 3000);
             });
 
-            // Download QR Code
+            // Screenshot Instructions
+            document.getElementById('screenshotBtn').addEventListener('click', function() {
+                const instructions = `📸 How to save your QR code:\n\niPhone/iPad:\n• Press Volume Up + Power button\n• Or swipe down from top-right corner\n\nAndroid:\n• Press Volume Down + Power button\n• Or use gesture controls\n\nThen crop around the QR code and save it!`;
+                alert(instructions);
+            });
+
+            // Download QR Code (actually download the image)
             document.getElementById('downloadQRBtn').addEventListener('click', function() {
                 const qrImage = document.getElementById('qrCodeImage');
-                if (qrImage) {
-                    const link = document.createElement('a');
-                    link.href = qrImage.src;
-                    link.download = `funhouse-qr-${userData.uniqueId}.png`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                if (qrImage && qrImage.src) {
+                    // Convert image to canvas then download
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    canvas.width = 400;
+                    canvas.height = 400;
+                    
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = function() {
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 50, 50, 300, 300);
+                        
+                        // Add text
+                        ctx.fillStyle = 'black';
+                        ctx.font = 'bold 20px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🎪 FUNHOUSE', canvas.width/2, 30);
+                        ctx.font = '14px Arial';
+                        ctx.fillText(userData.uniqueId, canvas.width/2, 380);
+                        
+                        // Download
+                        canvas.toBlob(function(blob) {
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `funhouse-qr-${userData.uniqueId}.png`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                        });
+                    };
+                    img.src = qrImage.src;
                 } else {
-                    alert('QR code not available for download');
+                    // Fallback: just tell them to screenshot
+                    alert('📱 Tip: Take a screenshot of this page to save your QR code!');
                 }
             });
 
