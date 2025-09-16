@@ -11,6 +11,15 @@
             box-sizing: border-box;
         }
 
+        function resetScanner() {
+            setTimeout(() => {
+                if (stream && scanning) {
+                    updateStatus('Hold QR code in the frame', 'scanning');
+                    requestAnimationFrame(scan);
+                }
+            }, 3000);
+        }
+
         body {
             font-family: Arial, Helvetica, sans-serif !important;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -303,6 +312,13 @@
                 <button id="manual-submit" class="btn">Check In</button>
             </div>
             
+            <div class="manual-section">
+                <h3>Resend QR Code</h3>
+                <p>Send QR code to user's email:</p>
+                <input type="email" id="email-input" class="manual-input" placeholder="user@email.com" style="text-transform: none;">
+                <button id="resend-qr" class="btn" style="background: linear-gradient(135deg, #4caf50, #45a049);">Send QR Code</button>
+            </div>
+            
             <div id="result"></div>
         </div>
     </div>
@@ -337,11 +353,19 @@
             document.getElementById('start-btn').addEventListener('click', startScanner);
             document.getElementById('stop-btn').addEventListener('click', stopScanner);
             document.getElementById('manual-submit').addEventListener('click', handleManualInput);
+            document.getElementById('resend-qr').addEventListener('click', handleResendQR);
             
             // Auto-submit on Enter in manual input
             document.getElementById('manual-input').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     handleManualInput();
+                }
+            });
+            
+            // Auto-submit on Enter in email input
+            document.getElementById('email-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleResendQR();
                 }
             });
         });
@@ -613,13 +637,66 @@
             document.getElementById('manual-input').value = '';
         }
 
-        function resetScanner() {
-            setTimeout(() => {
-                if (stream && scanning) {
-                    updateStatus('Hold QR code in the frame', 'scanning');
-                    requestAnimationFrame(scan);
+        async function handleResendQR() {
+            if (!isAuthenticated) return;
+            
+            const email = document.getElementById('email-input').value.trim().toLowerCase();
+            if (!email || !email.includes('@')) {
+                updateStatus('Please enter a valid email address', 'error');
+                return;
+            }
+            
+            try {
+                updateStatus('Looking up user by email...', 'scanning');
+                
+                // Find user in registrations by email
+                const userResponse = await fetch(`${SUPABASE_URL}/rest/v1/registrations?email=eq.${email}`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (!userResponse.ok) {
+                    throw new Error('Failed to look up user');
                 }
-            }, 3000);
+
+                const users = await userResponse.json();
+                
+                if (users.length === 0) {
+                    updateStatus('No user found with that email address', 'error');
+                    return;
+                }
+
+                const user = users[0];
+                updateStatus('User found! Generating email...', 'success');
+
+                // Generate QR code URL
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=${encodeURIComponent(user.unique_id)}`;
+                
+                // Create email content
+                const subject = encodeURIComponent('🎪 Your Funhouse Entry Pass - Retrieved');
+                const body = encodeURIComponent(`Hi ${user.full_name}!\n\nHere's your Funhouse entry pass information:\n\n🆔 Your ID: ${user.unique_id}\n🎫 QR Code: ${qrUrl}\n\nYou can:\n1. Save the QR code image from the link above\n2. Take a screenshot of this email\n3. Write down your ID: ${user.unique_id}\n\nShow any of these when you arrive for quick check-in!\n\n🎪 See you at the Funhouse!\n\nP.S. - This was sent by event staff to help you get your entry pass.`);
+                
+                // Open email client
+                const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
+                window.open(mailtoLink);
+                
+                updateStatus('Email opened! Send to user.', 'success');
+                showResult('success', 'QR Code email ready to send!', {
+                    fullName: user.full_name,
+                    email: user.email,
+                    userId: user.unique_id,
+                    qrUrl: qrUrl
+                });
+                
+                // Clear email input
+                document.getElementById('email-input').value = '';
+
+            } catch (error) {
+                console.error('Resend QR error:', error);
+                updateStatus('Failed to resend QR: ' + error.message, 'error');
+            }
         }
     </script>
 </body>
