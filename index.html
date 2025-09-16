@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cereal No Milk Funhouse Check-in</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
+            background-size: 400% 400%;
+            animation: gradientShift 10s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-placeholder {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-message {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255,107,107,0.1), rgba(78,205,196,0.1));
+            border-radius: 15px;
+            border: 2px dashed #4ecdc4;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .optional {
+            color: #888;
+            font-weight: normal;
+            font-size: 0.9em;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"] {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8f9fa, #fff);
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 0 20px rgba(78,205,196,0.3);
+            transform: translateY(-2px);
+        }
+
+        .helper-text {
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #4ecdc4;
+            margin-top: 3px;
+        }
+
+        .checkbox-group label {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 25px rgba(78,205,196,0.3);
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(78,205,196,0.4);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+
+        .success-container {
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            font-size: 1.2em;
+            color: #333;
+            line-height: 1.6;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(78,205,196,0.15), rgba(69,183,209,0.15));
+            border-radius: 20px;
+            border: 3px solid #4ecdc4;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .user-id {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            color: #ff6b6b;
+            font-weight: bold;
+            background: rgba(255,107,107,0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+
+        .error {
+            color: #ff4444;
+            background: rgba(255,68,68,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #ff4444;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #45b7d1, #96ceb4);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(69,183,209,0.3);
+        }
+
+        .wallet-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .wallet-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .wallet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102,126,234,0.3);
+        }
+
+        .wallet-btn.apple {
+            background: linear-gradient(135deg, #000, #333);
+        }
+
+        .wallet-btn.google {
+            background: linear-gradient(135deg, #4285f4, #34a853);
+        }
+
+        .share-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .share-btn {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(250,177,160,0.4);
+        }
+
+        @media (max-width: 480px) {
+            .wallet-actions {
+                gap: 10px;
+            }
+            
+            .share-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .share-btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Registration Form -->
+        <div id="registrationForm">
+            <div class="logo-placeholder">
+                🎪 FUNHOUSE
+            </div>
+            
+            <h1>Welcome!</h1>
+            
+            <div class="welcome-message">
+                Welcome to the Cereal No Milk Funhouse! Join our crew for exclusive treats, surprises, and all the Funhouse fun you can handle!
+            </div>
+
+            <form id="checkinForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name *</label>
+                    <input type="text" id="fullName" name="fullName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number <span class="optional">(Optional)</span></label>
+                    <input type="tel" id="phone" name="phone">
+                    <div class="helper-text">We'll send you fun updates, show alerts, and special event info straight to your phone!</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="birthday">Birthday <span class="optional">(Optional)</span></label>
+                    <input type="date" id="birthday" name="birthday">
+                    <div class="helper-text">We might just have a special birthday surprise waiting for you!</div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="promotions" name="promotions">
+                    <label for="promotions">Yes, I want to receive exclusive offers, surprises, and Funhouse fun!</label>
+                </div>
+
+                <button type="submit" class="submit-btn">Join the Funhouse!</button>
+                
+                <div class="loading">
+                    🎪 Creating your magical QR code...
+                </div>
+            </form>
+        </div>
+
+        <!-- Success Message with QR Code -->
+        <div id="successContainer" class="success-container">
+            <div class="logo-placeholder">
+                🎪 FUNHOUSE
+            </div>
+            
+            <h1>Welcome to the Crew!</h1>
+            
+            <div class="success-message">
+                Thanks for joining the Cereal No Milk Funhouse! Your QR code is ready!
+            </div>
+
+            <div class="qr-container">
+                <h3>Your Personal QR Code</h3>
+                <div class="user-id">
+                    Your ID: <span id="userIdDisplay"></span>
+                </div>
+                <div id="qrCodeContainer"></div>
+                <p><strong>Save this QR code!</strong> Show it when you arrive to check in quickly.</p>
+            </div>
+
+            <!-- Wallet Save Options -->
+            <div class="wallet-actions">
+                <button id="addToWalletBtn" class="wallet-btn">
+                    📱 Add to Apple Wallet
+                </button>
+                <button id="addToGoogleWalletBtn" class="wallet-btn google">
+                    📱 Add to Google Wallet
+                </button>
+                <button id="downloadQRBtn" class="wallet-btn">
+                    💾 Download QR Code
+                </button>
+            </div>
+
+            <!-- Share Options -->
+            <div class="share-actions">
+                <button id="shareBtn" class="share-btn">
+                    📤 Share QR Code
+                </button>
+                <button id="copyIdBtn" class="share-btn">
+                    📋 Copy ID
+                </button>
+                <button id="emailBtn" class="share-btn">
+                    ✉️ Email Me
+                </button>
+                <button id="textBtn" class="share-btn">
+                    💬 Text Me
+                </button>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorContainer" class="error" style="display: none;">
+            <h3>Oops! Something went wrong.</h3>
+            <p id="errorMessage"></p>
+            <button onclick="location.reload()" class="submit-btn" style="margin-top: 15px; padding: 10px 20px; font-size: 1em;">Try Again</button>
+        </div>
+    </div>
+    
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://oblvyccchyshhpcemkou.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHZ5Y2NjaHlzaGhwY2Vta291Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5MDIxOTUsImV4cCI6MjA3MzQ3ODE5NX0.NLWvcPfAWigKmSoDRyqHoVjXJqcGyCeCdNAIbTr1Afo';
+        
+        const CONFIG = {
+            CLIENT_ID: 'cereal-funhouse',
+            EVENT_NAME: 'Cereal No Milk Funhouse'
+        };
+
+        let currentUserData = null;
+
+        // Generate unique user ID
+        function generateUniqueId() {
+            const timestamp = Date.now().toString(36);
+            const randomStr = Math.random().toString(36).substr(2, 5);
+            return `${CONFIG.CLIENT_ID}-${timestamp}-${randomStr}`.toUpperCase();
+        }
+
+        // SIMPLE QR CODE THAT WORKS
+        function generateQRCode(userId, containerElement) {
+            console.log('🔥 Making QR for:', userId);
+            
+            // Just use a reliable QR API that works
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&format=png&data=${encodeURIComponent(userId)}`;
+            
+            containerElement.innerHTML = `
+                <div style="text-align: center; margin: 20px 0;">
+                    <img id="qrCodeImage" src="${qrUrl}" 
+                         alt="QR Code" 
+                         style="max-width: 200px; border: 3px solid #4ecdc4; border-radius: 10px; padding: 10px; background: white;"
+                         onload="console.log('✅ QR CODE LOADED SUCCESSFULLY!')"
+                         onerror="console.log('⚠ QR failed, showing backup'); this.style.display='none'; document.getElementById('qr-backup-${Date.now()}').style.display='block';">
+                    
+                    <div id="qr-backup-${Date.now()}" style="display: none; border: 3px solid #4ecdc4; padding: 25px; border-radius: 15px; background: #f0f8ff; margin: 15px 0;">
+                        <div style="font-size: 60px; margin: 20px 0;">📱</div>
+                        <h3>Your Check-in ID</h3>
+                        <div style="font-family: 'Courier New', monospace; font-size: 22px; font-weight: bold; background: white; padding: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #4ecdc4; color: #ff6b6b; word-break: break-all;">${userId}</div>
+                        <p><strong>Show this to staff for check-in</strong></p>
+                    </div>
+                    
+                    <p style="margin-top: 15px; font-weight: bold; color: #4caf50;">✅ Ready for check-in!</p>
+                </div>
+            `;
+            
+            return containerElement;
+        }
+
+        // Apple Wallet Pass generation
+        function generateAppleWalletPass(userData) {
+            // This creates a simple pass for Apple Wallet
+            const passData = {
+                formatVersion: 1,
+                passTypeIdentifier: "pass.com.cerealnoMilk.funhouse",
+                serialNumber: userData.uniqueId,
+                teamIdentifier: "FUNHOUSE",
+                organizationName: "Cereal No Milk Funhouse",
+                description: "Funhouse Entry Pass",
+                logoText: "🎪 FUNHOUSE",
+                foregroundColor: "rgb(255, 255, 255)",
+                backgroundColor: "rgb(102, 126, 234)",
+                labelColor: "rgb(255, 255, 255)",
+                generic: {
+                    primaryFields: [{
+                        key: "name",
+                        label: "NAME",
+                        value: userData.fullName
+                    }],
+                    secondaryFields: [{
+                        key: "event",
+                        label: "EVENT",
+                        value: CONFIG.EVENT_NAME
+                    }],
+                    auxiliaryFields: [{
+                        key: "id",
+                        label: "ID",
+                        value: userData.uniqueId
+                    }],
+                    backFields: [{
+                        key: "qr",
+                        label: "QR Code Data",
+                        value: userData.uniqueId
+                    }]
+                },
+                barcode: {
+                    message: userData.uniqueId,
+                    format: "PKBarcodeFormatQR",
+                    messageEncoding: "iso-8859-1"
+                }
+            };
+
+            // Create download link
+            const blob = new Blob([JSON.stringify(passData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `funhouse-pass-${userData.uniqueId}.pkpass`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Save to Supabase
+        async function saveRegistration(userData) {
+            try {
+                console.log('Saving to Supabase:', userData);
+                
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/registrations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        unique_id: userData.uniqueId,
+                        full_name: userData.fullName,
+                        email: userData.email,
+                        phone: userData.phone || '',
+                        birthday: userData.birthday || '',
+                        promotions: userData.promotions,
+                        registration_date: userData.registrationDate
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to save: ${response.status}`);
+                }
+
+                console.log('✅ Successfully saved to Supabase');
+                return true;
+                
+            } catch (error) {
+                console.error('⚠ Failed to save registration:', error);
+                throw error;
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('checkinForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('.submit-btn');
+            const loading = document.querySelector('.loading');
+            const errorContainer = document.getElementById('errorContainer');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Joining...';
+            loading.style.display = 'block';
+            errorContainer.style.display = 'none';
+            
+            try {
+                const uniqueId = generateUniqueId();
+                const formData = new FormData(this);
+                
+                const userData = {
+                    uniqueId: uniqueId,
+                    clientId: CONFIG.CLIENT_ID,
+                    eventName: CONFIG.EVENT_NAME,
+                    fullName: formData.get('fullName'),
+                    email: formData.get('email'),
+                    phone: formData.get('phone') || '',
+                    birthday: formData.get('birthday') || '',
+                    promotions: formData.get('promotions') ? 'Yes' : 'No',
+                    registrationDate: new Date().toISOString(),
+                    registrationTimestamp: new Date().toLocaleString()
+                };
+
+                currentUserData = userData;
+                console.log('🔥 Registration data:', userData);
+                
+                // Save to Supabase
+                await saveRegistration(userData);
+
+                // Show success page
+                showSuccessPage(uniqueId, userData);
+
+            } catch (error) {
+                console.error('⚠ Registration error:', error);
+                showError('Failed to register: ' + error.message);
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Join the Funhouse!';
+            loading.style.display = 'none';
+        });
+
+        function showSuccessPage(uniqueId, userData) {
+            document.getElementById('registrationForm').style.display = 'none';
+            document.getElementById('successContainer').style.display = 'block';
+            
+            document.getElementById('userIdDisplay').textContent = uniqueId;
+            
+            console.log('🔥 GENERATING QR CODE FOR:', uniqueId);
+            
+            const qrContainer = document.getElementById('qrCodeContainer');
+            generateQRCode(uniqueId, qrContainer);
+
+            // Setup wallet and share buttons
+            setupWalletButtons(userData);
+        }
+
+        function setupWalletButtons(userData) {
+            // Add to Apple Wallet
+            document.getElementById('addToWalletBtn').addEventListener('click', function() {
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    generateAppleWalletPass(userData);
+                } else {
+                    alert('Apple Wallet is only available on iOS devices. Try downloading the QR code instead!');
+                }
+            });
+
+            // Add to Google Wallet
+            document.getElementById('addToGoogleWalletBtn').addEventListener('click', function() {
+                const googleWalletUrl = `https://pay.google.com/gp/v/save/eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({
+                    "iss": "your-service-account@your-project.iam.gserviceaccount.com",
+                    "aud": "google",
+                    "typ": "savetowallet",
+                    "payload": {
+                        "genericObjects": [{
+                            "id": userData.uniqueId,
+                            "classId": "3388000000022045361.generic_class",
+                            "genericType": "GENERIC_TYPE_UNSPECIFIED",
+                            "hexBackgroundColor": "#4285f4",
+                            "logo": {
+                                "sourceUri": {
+                                    "uri": "https://example.com/logo.png"
+                                }
+                            },
+                            "cardTitle": {
+                                "defaultValue": {
+                                    "language": "en",
+                                    "value": "🎪 Funhouse Pass"
+                                }
+                            },
+                            "subheader": {
+                                "defaultValue": {
+                                    "language": "en",
+                                    "value": userData.fullName
+                                }
+                            },
+                            "header": {
+                                "defaultValue": {
+                                    "language": "en",
+                                    "value": CONFIG.EVENT_NAME
+                                }
+                            },
+                            "barcode": {
+                                "type": "QR_CODE",
+                                "value": userData.uniqueId
+                            }
+                        }]
+                    }
+                })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`;
+                
+                window.open(googleWalletUrl, '_blank');
+            });
+
+            // Download QR Code
+            document.getElementById('downloadQRBtn').addEventListener('click', function() {
+                const qrImage = document.getElementById('qrCodeImage');
+                if (qrImage) {
+                    const link = document.createElement('a');
+                    link.href = qrImage.src;
+                    link.download = `funhouse-qr-${userData.uniqueId}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    alert('QR code not available for download');
+                }
+            });
+
+            // Share QR Code
+            document.getElementById('shareBtn').addEventListener('click', async function() {
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: '🎪 My Funhouse QR Code',
+                            text: `My Funhouse entry code: ${userData.uniqueId}`,
+                            url: window.location.href
+                        });
+                    } catch (err) {
+                        console.log('Error sharing:', err);
+                        copyToClipboard(`My Funhouse entry code: ${userData.uniqueId}`);
+                    }
+                } else {
+                    copyToClipboard(`My Funhouse entry code: ${userData.uniqueId}`);
+                }
+            });
+
+            // Copy ID
+            document.getElementById('copyIdBtn').addEventListener('click', function() {
+                copyToClipboard(userData.uniqueId);
+                this.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    this.textContent = '📋 Copy ID';
+                }, 2000);
+            });
+
+            // Email Me
+            document.getElementById('emailBtn').addEventListener('click', function() {
+                const subject = encodeURIComponent('🎪 Your Funhouse QR Code');
+                const body = encodeURIComponent(`Hi ${userData.fullName}!\n\nHere's your Funhouse entry code: ${userData.uniqueId}\n\nShow this code when you arrive for quick check-in!\n\n🎪 See you at the Funhouse!`);
+                window.open(`mailto:${userData.email}?subject=${subject}&body=${body}`);
+            });
+
+            // Text Me
+            document.getElementById('textBtn').addEventListener('click', function() {
+                if (userData.phone) {
+                    const message = encodeURIComponent(`🎪 Your Funhouse code: ${userData.uniqueId}`);
+                    window.open(`sms:${userData.phone}?body=${message}`);
+                } else {
+                    alert('No phone number provided during registration');
+                }
+            });
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text);
+            } else {
+                // Fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('errorContainer').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('registrationForm').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

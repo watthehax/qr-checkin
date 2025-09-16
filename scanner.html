@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>QR Scanner - Funhouse</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Login Screen Styles */
+        .login-screen {
+            display: block;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1.2em;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102,126,234,0.3);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+        }
+
+        .login-error {
+            color: #f44336;
+            background: rgba(244,67,54,0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 2px solid #f44336;
+        }
+
+        /* Scanner Screen Styles */
+        .scanner-screen {
+            display: none;
+        }
+
+        .scanner-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #scanner-video {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            display: none;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 2px solid #4ecdc4;
+            border-radius: 15px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .scanner-corners {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            pointer-events: none;
+        }
+
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #4ecdc4;
+        }
+
+        .corner-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+        .corner-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+        .corner-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .status.scanning {
+            background: rgba(102,126,234,0.1);
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .status.success {
+            background: rgba(76,175,80,0.1);
+            color: #4caf50;
+            border: 2px solid #4caf50;
+        }
+
+        .status.error {
+            background: rgba(244,67,54,0.1);
+            color: #f44336;
+            border: 2px solid #f44336;
+        }
+
+        .manual-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .manual-input {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1em;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .manual-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102,126,234,0.3);
+        }
+
+        .result {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 15px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .user-info {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 5px;
+                padding: 15px;
+            }
+            
+            #scanner-video {
+                height: 200px;
+            }
+            
+            .scanner-overlay {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-screen">
+            <h1>Staff Access</h1>
+            <p style="margin: 20px 0; color: #666;">Enter password to access QR scanner</p>
+            
+            <input type="password" id="passwordInput" class="login-input" placeholder="Enter password" autocomplete="off">
+            <button id="loginBtn" class="login-btn">Access Scanner</button>
+            
+            <div id="loginError" class="login-error" style="display: none;">
+                Incorrect password. Please try again.
+            </div>
+        </div>
+
+        <!-- Scanner Screen -->
+        <div id="scannerScreen" class="scanner-screen">
+            <h1>QR Scanner</h1>
+            
+            <div class="scanner-container">
+                <video id="scanner-video"></video>
+                <div class="scanner-overlay">
+                    <div class="scanner-corners">
+                        <div class="corner corner-tl"></div>
+                        <div class="corner corner-tr"></div>
+                        <div class="corner corner-bl"></div>
+                        <div class="corner corner-br"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="start-btn" class="btn">Start Scanning</button>
+                <button id="stop-btn" class="btn" style="display: none;">Stop</button>
+                <button id="logout-btn" class="btn" style="background: #ff6b6b;">Logout</button>
+            </div>
+            
+            <div id="status" class="status">
+                Ready to scan QR codes
+            </div>
+            
+            <div class="manual-section">
+                <h3>Manual Input</h3>
+                <p>Or enter the ID manually:</p>
+                <input type="text" id="manual-input" class="manual-input" placeholder="CEREAL-FUNHOUSE-ABC123">
+                <button id="manual-submit" class="btn">Check In</button>
+            </div>
+            
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script>
+        // Password protection
+        const CORRECT_PASSWORD = 'Berlin';
+        let isAuthenticated = false;
+
+        // Supabase configuration
+        const SUPABASE_URL = 'https://oblvyccchyshhpcemkou.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHZ5Y2NjaHlzaGhwY2Vta291Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5MDIxOTUsImV4cCI6MjA3MzQ3ODE5NX0.NLWvcPfAWigKmSoDRyqHoVjXJqcGyCeCdNAIbTr1Afo';
+
+        let video, canvas, context, stream, scanning = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Login functionality
+            document.getElementById('loginBtn').addEventListener('click', handleLogin);
+            document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleLogin();
+                }
+            });
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+            // Scanner functionality
+            video = document.getElementById('scanner-video');
+            canvas = document.createElement('canvas');
+            context = canvas.getContext('2d');
+            
+            document.getElementById('start-btn').addEventListener('click', startScanner);
+            document.getElementById('stop-btn').addEventListener('click', stopScanner);
+            document.getElementById('manual-submit').addEventListener('click', handleManualInput);
+            
+            // Auto-submit on Enter in manual input
+            document.getElementById('manual-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleManualInput();
+                }
+            });
+        });
+
+        function handleLogin() {
+            const password = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            if (password === CORRECT_PASSWORD) {
+                isAuthenticated = true;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('scannerScreen').style.display = 'block';
+                errorDiv.style.display = 'none';
+            } else {
+                errorDiv.style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function handleLogout() {
+            isAuthenticated = false;
+            stopScanner();
+            document.getElementById('scannerScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordInput').focus();
+        }
+
+        async function startScanner() {
+            if (!isAuthenticated) return;
+            
+            try {
+                updateStatus('Requesting camera access...', 'scanning');
+                
+                // Specific constraints for mobile compatibility
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                };
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                video.srcObject = stream;
+                
+                // Critical iOS fixes
+                video.setAttribute('playsinline', '');
+                video.setAttribute('webkit-playsinline', '');
+                video.setAttribute('autoplay', '');
+                video.setAttribute('muted', '');
+                video.playsInline = true;
+                video.autoplay = true;
+                video.muted = true;
+                
+                await video.play();
+                
+                video.style.display = 'block';
+                document.getElementById('start-btn').style.display = 'none';
+                document.getElementById('stop-btn').style.display = 'inline-block';
+                
+                scanning = true;
+                updateStatus('Hold QR code in the frame', 'scanning');
+                
+                // Start scanning loop
+                requestAnimationFrame(scan);
+                
+            } catch (error) {
+                console.error('Scanner error:', error);
+                updateStatus('Camera access denied. Please enable camera permission.', 'error');
+            }
+        }
+
+        function stopScanner() {
+            scanning = false;
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            video.style.display = 'none';
+            document.getElementById('start-btn').style.display = 'inline-block';
+            document.getElementById('stop-btn').style.display = 'none';
+            
+            updateStatus('Scanner stopped', '');
+        }
+
+        function scan() {
+            if (!scanning || video.readyState !== video.HAVE_ENOUGH_DATA) {
+                if (scanning) requestAnimationFrame(scan);
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            if (canvas.width === 0 || canvas.height === 0) {
+                requestAnimationFrame(scan);
+                return;
+            }
+
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+            if (typeof jsQR !== 'undefined') {
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: 'attemptBoth',
+                });
+
+                if (code) {
+                    // Vibrate on detection
+                    if (navigator.vibrate) navigator.vibrate(200);
+                    
+                    console.log('QR detected:', code.data);
+                    handleQRDetected(code.data);
+                    return;
+                }
+            }
+
+            if (scanning) requestAnimationFrame(scan);
+        }
+
+        function handleQRDetected(qrData) {
+            scanning = false;
+            updateStatus('QR code detected! Processing...', 'success');
+            
+            let userId = qrData.trim().toUpperCase();
+            
+            if (!userId.includes('CEREAL-FUNHOUSE')) {
+                updateStatus('Invalid QR code format', 'error');
+                setTimeout(() => {
+                    if (stream) {
+                        scanning = true;
+                        updateStatus('Hold QR code in the frame', 'scanning');
+                        requestAnimationFrame(scan);
+                    }
+                }, 2000);
+                return;
+            }
+            
+            performCheckin(userId);
+        }
+
+        function handleManualInput() {
+            if (!isAuthenticated) return;
+            
+            const userId = document.getElementById('manual-input').value.trim().toUpperCase();
+            if (!userId) {
+                updateStatus('Please enter a valid ID', 'error');
+                return;
+            }
+            
+            performCheckin(userId);
+        }
+
+        async function performCheckin(userId) {
+            try {
+                updateStatus('Looking up user...', 'scanning');
+                
+                // Find user in registrations
+                const userResponse = await fetch(`${SUPABASE_URL}/rest/v1/registrations?unique_id=eq.${userId}`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (!userResponse.ok) {
+                    throw new Error('Failed to look up user');
+                }
+
+                const users = await userResponse.json();
+                
+                if (users.length === 0) {
+                    updateStatus('User not found', 'error');
+                    resetScanner();
+                    return;
+                }
+
+                const user = users[0];
+
+                // Check if already checked in today
+                const today = new Date().toISOString().split('T')[0];
+                const checkinResponse = await fetch(`${SUPABASE_URL}/rest/v1/checkins?unique_id=eq.${userId}&checkin_date=gte.${today}T00:00:00&checkin_date=lt.${today}T23:59:59`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (checkinResponse.ok) {
+                    const existingCheckins = await checkinResponse.json();
+                    if (existingCheckins.length > 0) {
+                        updateStatus('Already checked in today', 'error');
+                        showResult('error', `${user.full_name} already checked in today`);
+                        resetScanner();
+                        return;
+                    }
+                }
+
+                // Create check-in
+                const checkinData = {
+                    unique_id: userId,
+                    full_name: user.full_name,
+                    email: user.email,
+                    checkin_date: new Date().toISOString()
+                };
+
+                const createResponse = await fetch(`${SUPABASE_URL}/rest/v1/checkins`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(checkinData)
+                });
+
+                if (!createResponse.ok) {
+                    throw new Error('Failed to save check-in');
+                }
+
+                updateStatus('Check-in successful!', 'success');
+                showResult('success', 'Check-in successful!', {
+                    fullName: user.full_name,
+                    email: user.email,
+                    userId: userId,
+                    checkinTime: new Date().toLocaleString()
+                });
+                
+                resetScanner();
+
+            } catch (error) {
+                console.error('Check-in error:', error);
+                updateStatus('Check-in failed: ' + error.message, 'error');
+                resetScanner();
+            }
+        }
+
+        function updateStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function showResult(type, message, userData = null) {
+            const container = document.getElementById('result');
+            let html = `<div class="result ${type}">
+                <h3>${message}</h3>`;
+            
+            if (userData) {
+                html += `
+                    <div class="user-info">
+                        <p><strong>Name:</strong> ${userData.fullName}</p>
+                        <p><strong>ID:</strong> ${userData.userId}</p>
+                        <p><strong>Time:</strong> ${userData.checkinTime}</p>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+            
+            // Clear manual input
+            document.getElementById('manual-input').value = '';
+        }
+
+        function resetScanner() {
+            setTimeout(() => {
+                if (stream && scanning) {
+                    updateStatus('Hold QR code in the frame', 'scanning');
+                    requestAnimationFrame(scan);
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
