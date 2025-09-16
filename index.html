@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cereal No Milk Funhouse Check-in</title>
+    <link rel="icon" href="/logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="/logo.png">
     <style>
         * {
             margin: 0;
@@ -44,7 +46,8 @@
         .logo-placeholder {
             width: 120px;
             height: 120px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            background: url('/logo.png') center center;
+            background-size: cover;
             border-radius: 50%;
             margin: 0 auto 20px;
             display: flex;
@@ -55,6 +58,7 @@
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
             animation: bounce 2s infinite;
+            border: 3px solid #ff6b6b;
         }
 
         @keyframes bounce {
@@ -348,7 +352,7 @@
         <!-- Registration Form -->
         <div id="registrationForm">
             <div class="logo-placeholder">
-                🎪 FUNHOUSE
+                <!-- Logo will show as background image -->
             </div>
             
             <h1>Welcome!</h1>
@@ -405,13 +409,19 @@
                 Thanks for joining the Cereal No Milk Funhouse! Your QR code is ready!
             </div>
 
-            <div class="qr-container">
-                <h3>Your Personal QR Code</h3>
-                <div class="user-id">
-                    Your ID: <span id="userIdDisplay"></span>
+            <div class="qr-container" id="qrContainer">
+                <h3>🎪 Funhouse Entry Pass</h3>
+                <div style="background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <h4 style="margin: 0; font-size: 1.2em;" id="displayName"></h4>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9;">Cereal No Milk Funhouse</p>
                 </div>
                 <div id="qrCodeContainer"></div>
-                <p><strong>Save this QR code!</strong> Show it when you arrive to check in quickly.</p>
+                <div class="user-id" style="margin: 15px 0;">
+                    <strong>ID:</strong> <span id="userIdDisplay"></span>
+                </div>
+                <div style="background: #f0f8ff; padding: 12px; border-radius: 8px; font-size: 0.9em; color: #666;">
+                    <strong>📱 Show this screen for quick check-in!</strong>
+                </div>
             </div>
 
             <!-- Wallet Save Options -->
@@ -598,6 +608,7 @@
             document.getElementById('successContainer').style.display = 'block';
             
             document.getElementById('userIdDisplay').textContent = uniqueId;
+            document.getElementById('displayName').textContent = userData.fullName;
             
             console.log('🔥 GENERATING QR CODE FOR:', uniqueId);
             
@@ -612,17 +623,19 @@
             // Save to Photos (simplified)
             document.getElementById('addToWalletBtn').addEventListener('click', function() {
                 // Scroll to QR code and highlight it
-                const qrContainer = document.getElementById('qrCodeContainer');
-                qrContainer.scrollIntoView({ behavior: 'smooth' });
-                qrContainer.style.border = '5px solid #ff6b6b';
-                qrContainer.style.animation = 'pulse 1s infinite';
+                const qrContainer = document.getElementById('qrContainer');
+                qrContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                qrContainer.style.border = '4px solid #ff6b6b';
+                qrContainer.style.boxShadow = '0 0 30px rgba(255,107,107,0.5)';
+                qrContainer.style.animation = 'pulse 1.5s infinite';
                 
-                alert('📱 To save to your photos:\n\n1. Take a screenshot of this page\n2. Crop around the QR code\n3. Save to your Photos app\n\nThen show the QR code for check-in!');
+                alert('📱 Perfect! This whole card shows everything you need:\n\n✅ Your name: ' + userData.fullName + '\n✅ Event name\n✅ Your QR code\n✅ Your ID number\n\nTake a screenshot of this highlighted area and save it to your photos!');
                 
                 setTimeout(() => {
                     qrContainer.style.border = '';
+                    qrContainer.style.boxShadow = '';
                     qrContainer.style.animation = '';
-                }, 3000);
+                }, 5000);
             });
 
             // Screenshot Instructions
@@ -703,18 +716,91 @@
                 }, 2000);
             });
 
-            // Email Me
+            // Email Me (with QR code)
             document.getElementById('emailBtn').addEventListener('click', function() {
-                const subject = encodeURIComponent('🎪 Your Funhouse QR Code');
-                const body = encodeURIComponent(`Hi ${userData.fullName}!\n\nHere's your Funhouse entry code: ${userData.uniqueId}\n\nShow this code when you arrive for quick check-in!\n\n🎪 See you at the Funhouse!`);
-                window.open(`mailto:${userData.email}?subject=${subject}&body=${body}`);
+                const qrImage = document.getElementById('qrCodeImage');
+                if (qrImage && qrImage.src) {
+                    // Convert QR to data URL for email
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 300;
+                    canvas.height = 400;
+                    
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = function() {
+                        // White background
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        // Title
+                        ctx.fillStyle = '#333';
+                        ctx.font = 'bold 20px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🎪 FUNHOUSE PASS', canvas.width/2, 30);
+                        
+                        // Name
+                        ctx.font = 'bold 16px Arial';
+                        ctx.fillText(userData.fullName, canvas.width/2, 55);
+                        
+                        // QR Code
+                        ctx.drawImage(img, 50, 70, 200, 200);
+                        
+                        // ID
+                        ctx.font = '14px Arial';
+                        ctx.fillText('ID: ' + userData.uniqueId, canvas.width/2, 290);
+                        
+                        // Instructions
+                        ctx.font = '12px Arial';
+                        ctx.fillStyle = '#666';
+                        ctx.fillText('Show this QR code for check-in', canvas.width/2, 320);
+                        
+                        // Convert to blob and create email
+                        canvas.toBlob(function(blob) {
+                            const reader = new FileReader();
+                            reader.onload = function() {
+                                const dataUrl = reader.result;
+                                const subject = encodeURIComponent('🎪 Your Funhouse Entry Pass');
+                                const body = encodeURIComponent(`Hi ${userData.fullName}!\n\nYour Funhouse entry pass is attached as an image.\n\nYour ID: ${userData.uniqueId}\n\nSave this image to your phone and show it when you arrive!\n\n🎪 See you at the Funhouse!`);
+                                
+                                // Try to attach image (limited support)
+                                const mailtoLink = `mailto:${userData.email}?subject=${subject}&body=${body}`;
+                                window.open(mailtoLink);
+                                
+                                // Also offer direct download as backup
+                                const link = document.createElement('a');
+                                link.href = dataUrl;
+                                link.download = `funhouse-pass-${userData.uniqueId}.png`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                
+                                alert('📧 Email opened with your pass info!\n\n💾 Also downloading the pass image - attach this to your email or save to phone!');
+                            };
+                            reader.readAsDataURL(blob);
+                        });
+                    };
+                    img.src = qrImage.src;
+                } else {
+                    // Fallback to text only
+                    const subject = encodeURIComponent('🎪 Your Funhouse Entry Code');
+                    const body = encodeURIComponent(`Hi ${userData.fullName}!\n\nYour Funhouse entry code: ${userData.uniqueId}\n\nShow this code when you arrive for check-in!\n\n🎪 See you at the Funhouse!`);
+                    window.open(`mailto:${userData.email}?subject=${subject}&body=${body}`);
+                }
             });
 
-            // Text Me
+            // Text Me (enhanced with better message)
             document.getElementById('textBtn').addEventListener('click', function() {
                 if (userData.phone) {
-                    const message = encodeURIComponent(`🎪 Your Funhouse code: ${userData.uniqueId}`);
+                    const message = encodeURIComponent(`🎪 ${userData.fullName} - Your Funhouse Pass!\n\nID: ${userData.uniqueId}\n\nSave this message and show your ID when you arrive!\n\nFunhouse Entry Pass ✅`);
                     window.open(`sms:${userData.phone}?body=${message}`);
+                    
+                    // Also offer to download the QR image
+                    setTimeout(() => {
+                        if (confirm('💾 Also download your QR pass image to send yourself?')) {
+                            document.getElementById('downloadQRBtn').click();
+                        }
+                    }, 1000);
                 } else {
                     alert('No phone number provided during registration');
                 }
