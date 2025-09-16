@@ -324,7 +324,15 @@
     </div>
 
     <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
+        // EmailJS configuration
+        const EMAILJS_SERVICE_ID = 'service_6jwetzp';
+        const EMAILJS_TEMPLATE_ID = 'template_cs9y6el';
+        const EMAILJS_USER_ID = '-Z_agnX0DyYUwGGT-';
+
+        // Initialize EmailJS
+        emailjs.init(EMAILJS_USER_ID);
         // Password protection
         const CORRECT_PASSWORD = 'Berlin';
         let isAuthenticated = false;
@@ -669,26 +677,13 @@
                 }
 
                 const user = users[0];
-                updateStatus('User found! Generating email...', 'success');
+                updateStatus('User found! Click to copy email content', 'success');
 
                 // Generate QR code URL
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=${encodeURIComponent(user.unique_id)}`;
                 
-                // Create email content
-                const subject = encodeURIComponent('🎪 Your Funhouse Entry Pass - Retrieved');
-                const body = encodeURIComponent(`Hi ${user.full_name}!\n\nHere's your Funhouse entry pass information:\n\n🆔 Your ID: ${user.unique_id}\n🎫 QR Code: ${qrUrl}\n\nYou can:\n1. Save the QR code image from the link above\n2. Take a screenshot of this email\n3. Write down your ID: ${user.unique_id}\n\nShow any of these when you arrive for quick check-in!\n\n🎪 See you at the Funhouse!\n\nP.S. - This was sent by event staff to help you get your entry pass.`);
-                
-                // Open email client
-                const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
-                window.open(mailtoLink);
-                
-                updateStatus('Email opened! Send to user.', 'success');
-                showResult('success', 'QR Code email ready to send!', {
-                    fullName: user.full_name,
-                    email: user.email,
-                    userId: user.unique_id,
-                    qrUrl: qrUrl
-                });
+                // Show user info and email content
+                showResendResult(user, qrUrl);
                 
                 // Clear email input
                 document.getElementById('email-input').value = '';
@@ -697,6 +692,74 @@
                 console.error('Resend QR error:', error);
                 updateStatus('Failed to resend QR: ' + error.message, 'error');
             }
+        }
+
+        function showResendResult(user, qrUrl) {
+            const emailContent = `Subject: Your Funhouse Entry Pass - Retrieved
+
+Hi ${user.full_name}!
+
+Here's your Funhouse entry pass information:
+
+ID: ${user.unique_id}
+QR Code: ${qrUrl}
+
+You can:
+1. Save the QR code image from the link above
+2. Take a screenshot of this email  
+3. Write down your ID: ${user.unique_id}
+
+Show any of these when you arrive for quick check-in!
+
+See you at the Funhouse!
+
+P.S. - This was sent by event staff to help you get your entry pass.`;
+
+            const container = document.getElementById('result');
+            container.innerHTML = `
+                <div class="result success">
+                    <h3>Found: ${user.full_name}</h3>
+                    <div class="user-info">
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>ID:</strong> ${user.unique_id}</p>
+                        <p><strong>QR Link:</strong> <a href="${qrUrl}" target="_blank">View QR Code</a></p>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                        <h4>Email Content (Click to Copy):</h4>
+                        <textarea id="emailContent" readonly style="width: 100%; height: 200px; padding: 10px; border-radius: 5px; border: 1px solid #ddd; font-family: monospace; font-size: 12px;">${emailContent}</textarea>
+                        <button onclick="copyEmailContent()" class="btn" style="margin-top: 10px; width: 100%;">Copy Email Content</button>
+                    </div>
+                    
+                    <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; font-size: 0.9em;">
+                        <strong>Instructions:</strong>
+                        <ol style="margin: 5px 0; padding-left: 20px;">
+                            <li>Click "Copy Email Content" above</li>
+                            <li>Go to Gmail and compose new email</li>
+                            <li>Send to: ${user.email}</li>
+                            <li>Paste the copied content</li>
+                            <li>Send!</li>
+                        </ol>
+                    </div>
+                </div>
+            `;
+        }
+
+        function copyEmailContent() {
+            const textarea = document.getElementById('emailContent');
+            textarea.select();
+            document.execCommand('copy');
+            
+            // Change button text temporarily
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            button.style.background = '#4caf50';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+            }, 2000);
         }
     </script>
 </body>
